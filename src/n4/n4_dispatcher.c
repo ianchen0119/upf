@@ -90,54 +90,68 @@ void UpfDispatcher(const Event *event) {
             UTLT_Assert(status == STATUS_OK, goto freeBuf, "");
         }
 
-        switch (pfcpMessage->header.type) {
-        case PFCP_HEARTBEAT_REQUEST:
+        static void* n4_dispatch_table[N4_TYPE_NUM];
+
+        n4_table_assign_all(N4_TYPE_NUM, _default)
+        n4_table_assign(1, _PFCP_HEARTBEAT_REQUEST);
+        n4_table_assign(2, _PFCP_HEARTBEAT_RESPONSE);
+        n4_table_assign(5, _PFCP_ASSOCIATION_SETUP_REQUEST);
+        n4_table_assign(7, _PFCP_ASSOCIATION_UPDATE_REQUEST);
+        n4_table_assign(10, _PFCP_ASSOCIATION_RELEASE_RESPONSE);
+        n4_table_assign(50, _PFCP_SESSION_ESTABLISHMENT_REQUEST);
+        n4_table_assign(52, _PFCP_SESSION_MODIFICATION_REQUEST);
+        n4_table_assign(54, _PFCP_SESSION_DELETION_REQUEST);
+        n4_table_assign(57, _PFCP_SESSION_REPORT_RESPONSE);
+
+        n4_dispatcher(pfcpMessage->header.type);
+        _PFCP_HEARTBEAT_REQUEST:
             UTLT_Info("[PFCP] Handle PFCP heartbeat request");
             UpfN4HandleHeartbeatRequest(xact, &pfcpMessage->heartbeatRequest);
-            break;
-        case PFCP_HEARTBEAT_RESPONSE:
+            return;
+        _PFCP_HEARTBEAT_RESPONSE:
             UTLT_Info("[PFCP] Handle PFCP heartbeat response");
             UpfN4HandleHeartbeatResponse(xact, &pfcpMessage->heartbeatResponse);
-            break;
-        case PFCP_ASSOCIATION_SETUP_REQUEST:
+            return;
+        _PFCP_ASSOCIATION_SETUP_REQUEST:
             UTLT_Info("[PFCP] Handle PFCP association setup request");
             UpfN4HandleAssociationSetupRequest(xact,
                                                &pfcpMessage->pFCPAssociationSetupRequest);
-            break;
-        case PFCP_ASSOCIATION_UPDATE_REQUEST:
+            return;
+        _PFCP_ASSOCIATION_UPDATE_REQUEST:
             UTLT_Info("[PFCP] Handle PFCP association update request");
             UpfN4HandleAssociationUpdateRequest(xact,
                                                 &pfcpMessage->pFCPAssociationUpdateRequest);
-            break;
-        case PFCP_ASSOCIATION_RELEASE_RESPONSE:
+            return;
+        _PFCP_ASSOCIATION_RELEASE_RESPONSE:
             UTLT_Info("[PFCP] Handle PFCP association release response");
             UpfN4HandleAssociationReleaseRequest(xact,
                                                  &pfcpMessage->pFCPAssociationReleaseRequest);
-            break;
-        case PFCP_SESSION_ESTABLISHMENT_REQUEST:
+            return;
+        _PFCP_SESSION_ESTABLISHMENT_REQUEST:
             UTLT_Info("[PFCP] Handle PFCP session establishment request");
             UpfN4HandleSessionEstablishmentRequest(session, xact,
                                                    &pfcpMessage->pFCPSessionEstablishmentRequest);
-            break;
-        case PFCP_SESSION_MODIFICATION_REQUEST:
+            return;
+        _PFCP_SESSION_MODIFICATION_REQUEST:
             UTLT_Info("[PFCP] Handle PFCP session modification request");
             UpfN4HandleSessionModificationRequest(session, xact,
                                                   &pfcpMessage->pFCPSessionModificationRequest);
-            break;
-        case PFCP_SESSION_DELETION_REQUEST:
+            return;
+        _PFCP_SESSION_DELETION_REQUEST:
             UTLT_Info("[PFCP] Handle PFCP session deletion request");
             UpfN4HandleSessionDeletionRequest(session, xact,
                                               &pfcpMessage->pFCPSessionDeletionRequest);
-            break;
-        case PFCP_SESSION_REPORT_RESPONSE:
+            return;
+        _PFCP_SESSION_REPORT_RESPONSE:
             UTLT_Info("[PFCP] Handle PFCP session report response");
             UpfN4HandleSessionReportResponse(session, xact,
                                              &pfcpMessage->pFCPSessionReportResponse);
             if (xact->gnode) PfcpXactDelete(xact);
-            break;
-        default:
+            return;
+        _default:
             UTLT_Error("No implement pfcp type: %d", pfcpMessage->header.type);
-        }
+            return;
+        
         freeBuf:
         PfcpStructFree(pfcpMessage);
         BufblkFree(bufBlk);

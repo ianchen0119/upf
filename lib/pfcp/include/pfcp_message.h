@@ -51,6 +51,14 @@ typedef struct _PfcpHeader {
         uint32_t sqn_only;
     };
 } __attribute__ ((packed)) PfcpHeader;
+
+// computed goto
+#define N4_TYPE_NUM 256
+#define n4_dispatcher(type) goto *n4_dispatch_table[type]
+#define n4_table_assign(type, label) n4_dispatch_table[type] = &&label
+#define n4_table_assign_all(range, label) for(int count = 0; count < range + 1; count++){\
+            n4_table_assign(count, label);\
+        }
     
 #define RESERVED 0
 #define PFCP_HEARTBEAT_REQUEST 1
